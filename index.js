@@ -28,7 +28,7 @@ function alwaysArray(arrayOrSomething) {
 /**
  * fn( srcUrl, destPath [, options], callback )
  */
-module.exports = function(srcUrl, destPath, options, callback) {
+module.exports = function (srcUrl, destPath, options, callback) {
   var error, state;
 
   if (callback === undefined && typeof options === "function") {
@@ -46,7 +46,7 @@ module.exports = function(srcUrl, destPath, options, callback) {
 
   assert(typeof callback === "function", "must include callback function");
 
-  Q.try(function() {
+  Q.try(function () {
 
     // Is srcUrl a config file?
     if (!isUrl(srcUrl) && (/.json$/i).test(srcUrl)) {
@@ -64,8 +64,8 @@ module.exports = function(srcUrl, destPath, options, callback) {
       throw error;
     }
 
-  // Download
-  }).then(function() {
+    // Download
+  }).then(function () {
     var srcUrls = alwaysArray(srcUrl);
 
     if (options.filterRe) {
@@ -74,39 +74,41 @@ module.exports = function(srcUrl, destPath, options, callback) {
         filterRe = new RegExp(filterRe);
       }
 
-      srcUrls = srcUrls.filter(function(url) {
+      srcUrls = srcUrls.filter(function (url) {
         return filterRe.test(url);
       });
     }
 
-    return Q.all(srcUrls.map(function(srcUrl) {
+    return Q.all(srcUrls.map(function (srcUrl) {
       return download({
-        url: srcUrl
+        url: srcUrl,
+        proxyUsername: options.proxyUsername,
+        proxyPassword: options.proxyPassword,
       });
     }));
 
-  // Unpack
+    // Unpack
   }).then(unpack({
     path: destPath
 
-  // Generate available locales.
-  })).then(function() {
+    // Generate available locales.
+  })).then(function () {
     try {
       new AvailableLocales(destPath).write();
-    } catch(error) {
+    } catch (error) {
       error.message = "Error generating available locales. " + error.message;
       throw error;
     }
 
-  // Save installation state.
-  }).then(function() {
+    // Save installation state.
+  }).then(function () {
     try {
       state.write();
-    } catch(error) {
+    } catch (error) {
       error.message = "Error saving installation state. " + error.message;
       throw error;
     }
 
-  // Done
+    // Done
   }).nodeify(callback);
 };

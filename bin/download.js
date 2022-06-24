@@ -12,6 +12,7 @@ var download = require("../index");
 var nopt = require("nopt");
 var path = require("path");
 var pkg = require("../package.json");
+const prompt = require("prompt-sync")({ sigint: true });
 
 var options, opts, requiredOpts;
 
@@ -72,7 +73,13 @@ options.force = opts.force;
 options.filterRe = opts.filter;
 options.srcUrlKey = opts["src-url-key"] || opts.coverage;
 
-download(opts.input, opts.output, options, function(error) {
+const username = prompt("Enter proxy username:");
+const password = prompt.hide("Enter proxy password:");
+
+options.proxyUsername = username;
+options.proxyPassword = password;
+
+download(opts.input, opts.output, options, function (error) {
   if (error) {
     if (/E_ALREADY_INSTALLED/.test(error.code)) {
       error.message = error.message.replace(/Use `options.*/, "Use -f to " +
